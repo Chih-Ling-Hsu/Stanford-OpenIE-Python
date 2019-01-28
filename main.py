@@ -68,7 +68,7 @@ def process_entity_relations(entity_relations_str, verbose=True):
     return entity_relations
 
 
-def generate_graphviz_graph(entity_relations, verbose=True):
+def generate_graphviz_graph(entity_relations, out_folder='/tmp/openie/', verbose=True):
     """digraph G {
     # a -> b [ label="a to b" ];
     # b -> c [ label="another label"];
@@ -79,11 +79,11 @@ def generate_graphviz_graph(entity_relations, verbose=True):
         graph.append('"{}" -> "{}" [ label="{}" ];'.format(er[0], er[2], er[1]))
     graph.append('}')
 
-    out_dot = tmp_folder + 'out.dot'
+    out_dot = out_folder + 'out.dot'
     with open(out_dot, 'w') as output_file:
         output_file.writelines(graph)
 
-    out_png = tmp_folder + 'out.png'
+    out_png = out_folder + 'out.png'
     command = '{} -Tpng {} -o {}'.format(DOT_BIN_PATH, out_dot, out_png)
     debug_print('Executing command = {}'.format(command), verbose)
     dot_process = Popen(command, stdout=stderr, shell=True)
@@ -92,8 +92,8 @@ def generate_graphviz_graph(entity_relations, verbose=True):
     print('Wrote graph to {} and {}'.format(out_dot, out_png))
 
 
-def stanford_ie(input_filename, verbose=True, generate_graphviz=False):
-    out = tmp_folder + 'out.txt'
+def stanford_ie(input_filename, out_folder='/tmp/openie/', verbose=True, generate_graphviz=False):
+    out = out_folder + 'out.txt'
     input_filename = input_filename.replace(',', ' ')
 
     new_filename = ''
@@ -101,7 +101,7 @@ def stanford_ie(input_filename, verbose=True, generate_graphviz=False):
         if filename.startswith('/'):  # absolute path.
             new_filename += '{} '.format(filename)
         else:
-            new_filename += '../{} '.format(filename)
+            new_filename += '../../../../{} '.format(filename)
 
     absolute_path_to_script = os.path.dirname(os.path.realpath(__file__)) + '/'
     command = 'cd {};'.format(absolute_path_to_script)
@@ -111,9 +111,9 @@ def stanford_ie(input_filename, verbose=True, generate_graphviz=False):
 
     if verbose:
         debug_print('Executing command = {}'.format(command), verbose)
-        java_process = Popen(command, stdout=stderr, shell=True)
+        java_process = Popen(command, shell=True)
     else:
-        java_process = Popen(command, stdout=stderr, stderr=open(os.devnull, 'w'), shell=True)
+        java_process = Popen(command, shell=True)
     java_process.wait()
     assert not java_process.returncode, 'ERROR: Call to stanford_ie exited with a non-zero code status.'
 
@@ -123,7 +123,7 @@ def stanford_ie(input_filename, verbose=True, generate_graphviz=False):
 
     results = process_entity_relations(results_str, verbose)
     if generate_graphviz:
-        generate_graphviz_graph(results, verbose)
+        generate_graphviz_graph(results, out_folder, verbose)
 
     return results
 
