@@ -1,6 +1,6 @@
 
 from nltk.tokenize import TweetTokenizer
-import utils.OpenIE.main as mst
+import .main as mst
 import os
 import random
 import time
